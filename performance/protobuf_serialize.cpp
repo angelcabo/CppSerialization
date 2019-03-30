@@ -4,7 +4,7 @@
 
 #include "benchmark/cppbenchmark.h"
 
-#include "../proto/library.h"
+#include "../proto/fonts.h"
 
 class SerializationFixture
 {

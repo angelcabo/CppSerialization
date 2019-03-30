@@ -1,0 +1,23 @@
+namespace Trade.flatbuf;
+
+table Font
+{
+    id : string;
+    name : string;
+}
+
+table Family
+{
+    slug : string;
+    name : string;
+    fonts : [Font];
+    display : Font;
+}
+
+table Library
+{
+    name : string;
+    families : [Family];
+}
+
+root_type Library;

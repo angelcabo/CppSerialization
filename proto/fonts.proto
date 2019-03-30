@@ -1,0 +1,21 @@
+syntax = "proto3";
+package Fonts.protobuf;
+
+message Font
+{
+    required string id = 1;
+    required string name = 2;
+}
+
+message Family
+{
+    required string slug = 1;
+    required string name = 2;
+    repeated Font fonts = 3;
+    required Font display = 4;
+}
+
+message Library {
+  required string name = 1;
+  repeated Family families = 2;
+}

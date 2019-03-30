@@ -6,17 +6,17 @@
     \copyright MIT License
 */
 
-#include "../proto/library.h"
+#include "../proto/fonts.h"
 
 #include <iostream>
 
 int main(int argc, char** argv)
 {
     // Create a new account with some orders
-    TradeProto::Account account(1, "Test", "USD", 1000);
-    account.Orders.emplace_back(TradeProto::Order(1, "EURUSD", TradeProto::OrderSide::BUY, TradeProto::OrderType::MARKET, 1.23456, 1000));
-    account.Orders.emplace_back(TradeProto::Order(2, "EURUSD", TradeProto::OrderSide::SELL, TradeProto::OrderType::LIMIT, 1.0, 100));
-    account.Orders.emplace_back(TradeProto::Order(3, "EURUSD", TradeProto::OrderSide::BUY, TradeProto::OrderType::STOP, 1.5, 10));
+    FontsProto::Account account(1, "Test", "USD", 1000);
+    account.Orders.emplace_back(FontsProto::Order(1, "EURUSD", FontsProto::OrderSide::BUY, FontsProto::OrderType::MARKET, 1.23456, 1000));
+    account.Orders.emplace_back(FontsProto::Order(2, "EURUSD", FontsProto::OrderSide::SELL, FontsProto::OrderType::LIMIT, 1.0, 100));
+    account.Orders.emplace_back(FontsProto::Order(3, "EURUSD", FontsProto::OrderSide::BUY, FontsProto::OrderType::STOP, 1.5, 10));
 
     // Serialize the account to the FlatBuffer stream
     flatbuffers::FlatBufferBuilder builder;
@@ -26,7 +26,7 @@ int main(int argc, char** argv)
     std::cout << "FlatBuffer size: " << builder.GetSize() << std::endl;
 
     // Deserialize the account from the FlatBuffer stream
-    TradeProto::Account deserialized;
+    FontsProto::Account deserialized;
     deserialized.Deserialize(*Trade::flatbuf::GetAccount(builder.GetBufferPointer()));
 
     // Show account content
