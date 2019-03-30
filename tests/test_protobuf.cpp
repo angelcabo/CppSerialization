@@ -11,7 +11,7 @@ using namespace CppSerialization;
 
 TEST_CASE("Protobuf", "[LibrarySerialization]")
 {
-    FontsProto::Family family_one("family-one", "Family One", "TkD-one-1", "Regular");
+    FontsProto::Family family_one("family-one", "Family One");
     family_one.Fonts.emplace_back(FontsProto::Font("TkD-one-1", "Regular"));
 
     FontsProto::Library library("Full");
@@ -33,10 +33,8 @@ TEST_CASE("Protobuf", "[LibrarySerialization]")
     REQUIRE(deserialized.Families[0].Slug == "family-one");
     REQUIRE(deserialized.Families[0].Name == "Family One");
     REQUIRE(deserialized.Families[0].Fonts.size() == 1);
-    REQUIRE(deserialized.Families[0].Fonts[0].id == "TkD-one-1");
-    REQUIRE(deserialized.Families[0].Fonts[0].name == "Regular");
-    REQUIRE(deserialized.Families[0].DisplayFont.id == "TkD-one-1");
-    REQUIRE(deserialized.Families[0].DisplayFont.name == "Regular");
+    REQUIRE(deserialized.Families[0].Fonts[0].Id == "TkD-one-1");
+    REQUIRE(deserialized.Families[0].Fonts[0].Name == "Regular");
 
     // Delete all global objects allocated by Protobuf
     google::protobuf::ShutdownProtobufLibrary();

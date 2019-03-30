@@ -1,4 +1,4 @@
-syntax = "proto3";
+syntax = "proto2";
 package Fonts.protobuf;
 
 message Font
@@ -12,7 +12,6 @@ message Family
     required string slug = 1;
     required string name = 2;
     repeated Font fonts = 3;
-    required Font display = 4;
 }
 
 message Library {

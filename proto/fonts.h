@@ -9,8 +9,8 @@
 #pragma GCC system_header
 #endif
 
-#include "flatbuffers/trade_generated.h"
-#include "protobuf/trade.pb.h"
+#include "flatbuffers/fonts_generated.h"
+#include "protobuf/fonts.pb.h"
 #include "serialization/json/serializer.h"
 #include "serialization/json/deserializer.h"
 
@@ -36,7 +36,7 @@ struct Font
 
     flatbuffers::Offset<Fonts::flatbuf::Font> Serialize(flatbuffers::FlatBufferBuilder& builder) const
     {
-        return Fonts::flatbuf::CreateFontDirect(builder, Id, Name);
+        return Fonts::flatbuf::CreateFontDirect(builder, Id.c_str(), Name.c_str());
     }
 
     void Deserialize(const Fonts::flatbuf::Font& value)
@@ -85,13 +85,12 @@ struct Family
 {
     std::string Slug;
     std::string Name;
-    Font DisplayFont;
     std::vector<Font> Fonts;
 
-    Family() : Family("<<\?\?\?>>", "<<\?\?\?>>", "<<\?\?\?>>", "<<\?\?\?>>") {}
-    Family(const char* slug, const char* name, const char* display_id, const char* display_name) : Font(display_id, display_name)
+    Family() : Family("<<\?\?\?>>", "<<\?\?\?>>") {}
+    Family(const char* slug, const char* name)
     {
-        Slug = Slug;
+        Slug = slug;
         Name = name;
     }
 
@@ -99,18 +98,16 @@ struct Family
 
     flatbuffers::Offset<Fonts::flatbuf::Family> Serialize(flatbuffers::FlatBufferBuilder& builder) const
     {
-        auto display = Font.Serialize(builder);
         std::vector<flatbuffers::Offset<Fonts::flatbuf::Font>> fonts;
         for (const auto& font : Fonts)
             fonts.emplace_back(font.Serialize(builder));
-        return Fonts::flatbuf::CreateFamilyDirect(builder, Slug.c_str(), Name.c_str(), display, &fonts);
+        return Fonts::flatbuf::CreateFamilyDirect(builder, Slug.c_str(), Name.c_str(), &fonts);
     }
 
     void Deserialize(const Fonts::flatbuf::Family& value)
     {
         Slug = value.slug()->str();
         Name = value.name()->str();
-        Font.Deserialize(*value.display());
         Fonts.clear();
         for (auto o : *value.fonts())
         {
@@ -126,7 +123,6 @@ struct Family
     {
         value.set_slug(Slug);
         value.set_name(Name);
-        value.set_allocated_display(&Font.Serialize(*value.display().New(value.GetArena())));
         for (const auto& font : Fonts)
             font.Serialize(*value.add_fonts());
         return value;
@@ -136,9 +132,8 @@ struct Family
     {
         Slug = value.slug();
         Name = value.name();
-        Font.Deserialize(value.display());
         Fonts.clear();
-        for (int i = 0; i < value.fonts(); ++i)
+        for (int i = 0; i < value.fonts_size(); ++i)
         {
             Font font;
             font.Deserialize(value.fonts(i));
@@ -154,8 +149,6 @@ struct Family
         serializer.StartObject();
         serializer.Pair("slug", Slug);
         serializer.Pair("name", Name);
-        serializer.Key("display");
-        Font.Serialize(serializer);
         serializer.Key("fonts");
         serializer.StartArray();
         for (const auto& font : Fonts)
@@ -171,10 +164,6 @@ struct Family
 
         Deserializer::Find(json, "slug", Slug);
         Deserializer::Find(json, "name", Name);
-        Deserializer::FindObject(json, "display", [this](const Value::ConstObject& object)
-        {
-            Font.Deserialize(object);
-        });
         Fonts.clear();
         Deserializer::FindArray(json, "fonts", [this](const Value& item)
         {
