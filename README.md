@@ -1225,7 +1225,7 @@ protoc --proto_path=. --cpp_out=. trade.proto
 It is possible to use add_custom_command() in CMakeLists.txt to generate code
 using 'cmake' utility:
 ```cmake
-add_custom_command(TARGET example POST_BUILD COMMAND protoc --proto_path=. --cpp_out=. trade.proto)
+add_custom_command(TARGET example POST_BUILD COMMAND protoc --proto_path=. --cpp_out=. library.proto)
 ```
 
 As the result 'trade.pb.h' and 'trade.pb.cc' files will be generated.

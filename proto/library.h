@@ -1,40 +1,16 @@
 /*!
-    \file trade.h
-    \brief Trade proto
-    \author Ivan Shynkarenka
-    \date 24.02.2017
-    \copyright MIT License
+    \file library.h
 */
 
-#ifndef CPPSERIALIZATION_PROTO_TRADE_H
-#define CPPSERIALIZATION_PROTO_TRADE_H
+#ifndef CPPSERIALIZATION_PROTO_TK_H
+#define CPPSERIALIZATION_PROTO_TK_H
 
-#if defined(__clang__)
-#pragma clang system_header
-#elif defined(__GNUC__)
+#if defined(__GNUC__)
 #pragma GCC system_header
-#elif defined(_MSC_VER)
-#pragma system_header
 #endif
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4127) // C4127: conditional expression is constant
-#pragma warning(disable: 4244) // C4244: conversion' conversion from 'type1' to 'type2', possible loss of data
-#pragma warning(disable: 4245) // C4244: conversion' : conversion from 'type1' to 'type2', signed/unsigned mismatch
-#pragma warning(disable: 4267) // C4267: var' : conversion from 'size_t' to 'type', possible loss of data
-#endif
-#include "capnp/serialize.h"
-#include "capnproto/trade.capnp.h"
-#include "fbe/trade.h"
 #include "flatbuffers/trade_generated.h"
 #include "protobuf/trade.pb.h"
-#include "sbe/Account.h"
-#include "sbe/MessageHeader.h"
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
-
 #include "serialization/json/serializer.h"
 #include "serialization/json/deserializer.h"
 
@@ -42,7 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace TradeProto {
+namespace LibraryProto {
 
 enum class OrderSide : uint8_t
 {
@@ -75,61 +51,6 @@ struct Order
         Type = type;
         Price = price;
         Volume = volume;
-    }
-
-    // Cap'n'Proto serialization
-
-    void Serialize(Trade::capnproto::Order::Builder& builder) const
-    {
-        builder.setId(Id);
-        builder.setSymbol(Symbol);
-        builder.setSide((Trade::capnproto::OrderSide)Side);
-        builder.setType((Trade::capnproto::OrderType)Type);
-        builder.setPrice(Price);
-        builder.setVolume(Volume);
-    }
-
-    void Deserialize(const Trade::capnproto::Order::Reader& reader)
-    {
-        Id = reader.getId();
-        std::string symbol = reader.getSymbol();
-        std::memcpy(Symbol, symbol.c_str(), std::min(symbol.size() + 1, sizeof(Symbol)));
-        Side = (OrderSide)reader.getSide();
-        Type = (OrderType)reader.getType();
-        Price = reader.getPrice();
-        Volume = reader.getVolume();
-    }
-
-    // FastBinaryEncoding serialization
-
-    template <class TBuffer>
-    void Serialize(FBE::FieldModel<TBuffer, trade::Order>& model) const
-    {
-        size_t model_begin = model.set_begin();
-        model.id.set(Id);
-        model.symbol.set(Symbol);
-        model.side.set((trade::OrderSide)Side);
-        model.type.set((trade::OrderType)Type);
-        model.price.set(Price);
-        model.volume.set(Volume);
-        model.set_end(model_begin);
-    }
-
-    template <class TBuffer>
-    void Deserialize(const FBE::FieldModel<TBuffer, trade::Order>& model)
-    {
-        size_t model_begin = model.get_begin();
-        model.id.get(Id);
-        model.symbol.get(Symbol);
-        trade::OrderSide side;
-        model.side.get(side);
-        Side = (OrderSide)side;
-        trade::OrderType type;
-        model.type.get(type);
-        Type = (OrderType)type;
-        model.price.get(Price);
-        model.volume.get(Volume);
-        model.get_end(model_begin);
     }
 
     // FlatBuffers serialization
@@ -174,28 +95,6 @@ struct Order
         Volume = value.volume();
     }
 
-    // SimpleBinaryEncoding serialization
-
-    void Serialize(sbe::Order& model) const
-    {
-        model.id(Id);
-        model.putSymbol(Symbol);
-        model.side((sbe::OrderSide::Value)Side);
-        model.type((sbe::OrderType::Value)Type);
-        model.price(Price);
-        model.volume(Volume);
-    }
-
-    void Deserialize(sbe::Order& model)
-    {
-        Id = model.id();
-        model.getSymbol(Symbol, sizeof(Symbol));
-        Side = (OrderSide)model.side();
-        Type = (OrderType)model.type();
-        Price = model.price();
-        Volume = model.volume();
-    }
-
     // JSON serialization
 
     template<typename OutputStream>
@@ -237,41 +136,6 @@ struct Balance
         Amount = amount;
     }
 
-    // Cap'n'Proto serialization
-
-    void Serialize(Trade::capnproto::Balance::Builder& builder) const
-    {
-        builder.setCurrency(Currency);
-        builder.setAmount(Amount);
-    }
-
-    void Deserialize(const Trade::capnproto::Balance::Reader& reader)
-    {
-        std::string currency = reader.getCurrency();
-        std::memcpy(Currency, currency.c_str(), std::min(currency.size() + 1, sizeof(Currency)));
-        Amount = reader.getAmount();
-    }
-
-    // FastBinaryEncoding serialization
-
-    template <class TBuffer>
-    void Serialize(FBE::FieldModel<TBuffer, trade::Balance>& model) const
-    {
-        size_t model_begin = model.set_begin();
-        model.currency.set(Currency);
-        model.amount.set(Amount);
-        model.set_end(model_begin);
-    }
-
-    template <class TBuffer>
-    void Deserialize(const FBE::FieldModel<TBuffer, trade::Balance>& model)
-    {
-        size_t model_begin = model.get_begin();
-        model.currency.get(Currency);
-        model.amount.get(Amount);
-        model.get_end(model_begin);
-    }
-
     // FlatBuffers serialization
 
     flatbuffers::Offset<Trade::flatbuf::Balance> Serialize(flatbuffers::FlatBufferBuilder& builder) const
@@ -300,20 +164,6 @@ struct Balance
         std::string currency = value.currency();
         std::memcpy(Currency, currency.c_str(), std::min(currency.size() + 1, sizeof(Currency)));
         Amount = value.amount();
-    }
-
-    // SimpleBinaryEncoding serialization
-
-    void Serialize(sbe::Balance& model) const
-    {
-        model.putCurrency(Currency);
-        model.amount(Amount);
-    }
-
-    void Deserialize(sbe::Balance& model)
-    {
-        model.getCurrency(Currency, sizeof(Currency));
-        Amount = model.amount();
     }
 
     // JSON serialization
@@ -349,72 +199,6 @@ struct Account
     {
         Id = id;
         Name = name;
-    }
-
-    // Cap'n'Proto serialization
-
-    void Serialize(Trade::capnproto::Account::Builder& builder) const
-    {
-        builder.setId(Id);
-        builder.setName(Name);
-        auto wallet = builder.initWallet();
-        Wallet.Serialize(wallet);
-        auto orders = builder.initOrders((unsigned)Orders.size());
-        unsigned index = 0;
-        for (const auto& order : Orders)
-        {
-            auto o = orders[index++];
-            order.Serialize(o);
-        }
-    }
-
-    void Deserialize(const Trade::capnproto::Account::Reader& reader)
-    {
-        Id = reader.getId();
-        Name = reader.getName().cStr();
-        Wallet.Deserialize(reader.getWallet());
-        Orders.clear();
-        for (auto o : reader.getOrders())
-        {
-            Order order;
-            order.Deserialize(o);
-            Orders.emplace_back(order);
-        }
-    }
-
-    // FastBinaryEncoding serialization
-
-    template <class TBuffer>
-    void Serialize(FBE::FieldModel<TBuffer, trade::Account>& model) const
-    {
-        size_t model_begin = model.set_begin();
-        model.id.set(Id);
-        model.name.set(Name);
-        Wallet.Serialize(model.wallet);
-        auto order_model = model.orders.resize(Orders.size());
-        for (const auto& order : Orders)
-        {
-            order.Serialize(order_model);
-            order_model.fbe_shift(order_model.fbe_size());
-        }
-        model.set_end(model_begin);
-    }
-
-    template <class TBuffer>
-    void Deserialize(const FBE::FieldModel<TBuffer, trade::Account>& model)
-    {
-        size_t model_begin = model.get_begin();
-        model.id.get(Id);
-        model.name.get(Name);
-        Wallet.Deserialize(model.wallet);
-        Orders.clear();
-        for (size_t i = 0; i < model.orders.size(); ++i)
-        {
-            Order order;
-            order.Deserialize(model.orders[i]);
-            Orders.emplace_back(order);
-        }
-        model.get_end(model_begin);
     }
 
     // FlatBuffers serialization
@@ -468,33 +252,6 @@ struct Account
         }
     }
 
-    // SimpleBinaryEncoding serialization
-
-    void Serialize(sbe::Account& model) const
-    {
-        model.id(Id);
-        model.putName(Name);
-        Wallet.Serialize(model.wallet());
-        auto orders = model.ordersCount((uint16_t)Orders.size());
-        for (const auto& order : Orders)
-            order.Serialize(orders.next().order());
-    }
-
-    void Deserialize(sbe::Account& model)
-    {
-        Id = model.id();
-        Name = model.getNameAsString();
-        Wallet.Deserialize(model.wallet());
-        Orders.clear();
-        auto orders = model.orders();
-        for (int i = 0; i < orders.count(); ++i)
-        {
-            Order order;
-            order.Deserialize(orders.next().order());
-            Orders.emplace_back(order);
-        }
-    }
-
     // JSON serialization
 
     template<typename OutputStream>
@@ -534,6 +291,6 @@ struct Account
     }
 };
 
-} // namespace Trade
+}
 
-#endif // CPPSERIALIZATION_PROTO_TRADE_H
+#endif // CPPSERIALIZATION_PROTO_TK_H

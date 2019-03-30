@@ -4,7 +4,7 @@
 
 #include "benchmark/cppbenchmark.h"
 
-#include "../proto/trade.h"
+#include "../proto/library.h"
 
 using namespace CppSerialization::JSON;
 

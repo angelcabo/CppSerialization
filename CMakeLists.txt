@@ -6,17 +6,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Project name
 project(cppserialization)
 
-# Doxygen
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-  set(DOXYGEN "doxygen")
-  if(NOT TARGET ${DOXYGEN})
-    add_custom_command(OUTPUT "Doxyfile" COMMAND ${DOXYGEN_EXECUTABLE} "Doxyfile" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/documents")
-    add_custom_target(${DOXYGEN} DEPENDS "Doxyfile")
-    set_target_properties(${DOXYGEN} PROPERTIES FOLDER doxygen)
-  endif()
-endif()
-
 # CMake module path
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -30,7 +19,6 @@ include(SystemInformation)
 add_subdirectory("modules")
 
 # Link libraries
-list(APPEND LINKLIBS capnp)
 list(APPEND LINKLIBS libprotobuf)
 list(APPEND LINKLIBS cppcommon)
 
@@ -43,7 +31,7 @@ file(GLOB_RECURSE LIB_INLINE_FILES "include/*.inl")
 file(GLOB_RECURSE LIB_SOURCE_FILES "source/*.cpp")
 set_source_files_properties(${LIB_SOURCE_FILES} PROPERTIES COMPILE_FLAGS "${PEDANTIC_COMPILE_FLAGS}")
 add_library(cppserialization ${LIB_HEADER_FILES} ${LIB_INLINE_FILES} ${LIB_SOURCE_FILES})
-target_include_directories(cppserialization PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/proto" PUBLIC ${capnproto} PUBLIC ${flatbuf} PUBLIC ${protobuf} PUBLIC ${rapidjson})
+target_include_directories(cppserialization PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/proto" PUBLIC ${flatbuf} PUBLIC ${protobuf} PUBLIC ${rapidjson})
 target_link_libraries(cppserialization ${LINKLIBS})
 set_target_properties(cppserialization PROPERTIES FOLDER libraries)
 list(APPEND INSTALL_TARGETS cppserialization)
@@ -90,29 +78,8 @@ if(NOT CPPSERIALIZATION_MODULE)
     list(APPEND PROTO_FILES ${PROTOBUF_OUTPUT_FILE})
   endforeach()
 
-  # Proto Cap'n'Proto models
-  file(GLOB CAPNP_FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/proto" "proto/*.capnp")
-  foreach(CAPNP_FILE ${CAPNP_FILES})
-    string(REGEX REPLACE "(.*)\\.capnp" "\\1.capnp.c++" CAPNP_SOURCE ${CAPNP_FILE})
-    set(CAPNP_INPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/proto")
-    set(CAPNP_INPUT_FILE "${CAPNP_INPUT_DIR}/${CAPNP_FILE}")
-    set(CAPNPC_SRC_PREFIX "${CAPNP_INPUT_DIR}")
-    set(CAPNPC_OUTPUT_DIR "${CAPNP_INPUT_DIR}/capnproto")
-    capnp_generate_cpp(CAPNP_HEADERS CAPNP_SOURCES ${CAPNP_INPUT_FILE})
-    list(APPEND PROTO_FILES ${CAPNP_HEADERS} ${CAPNP_SOURCES})
-  endforeach()
-
   # Proto
-  if(MSVC)
-    # C4125: decimal digit terminates octal escape sequence
-    # C4127: conditional expression is constant
-    # C4244: conversion' conversion from 'type1' to 'type2', possible loss of data
-    # C4245: conversion' : conversion from 'type1' to 'type2', signed/unsigned mismatch
-    # C4267: var' : conversion from 'size_t' to 'type', possible loss of data
-    set_source_files_properties(${PROTO_FILES} PROPERTIES COMPILE_FLAGS "${PEDANTIC_COMPILE_FLAGS} /wd4125 /wd4127 /wd4244 /wd4245 /wd4267")
-  else()
-    set_source_files_properties(${PROTO_FILES} PROPERTIES COMPILE_FLAGS "${PEDANTIC_COMPILE_FLAGS} -Wno-nested-anon-types")
-  endif()
+  set_source_files_properties(${PROTO_FILES} PROPERTIES COMPILE_FLAGS "${PEDANTIC_COMPILE_FLAGS} -Wno-nested-anon-types")
   add_library(proto ${PROTO_FILES})
   target_link_libraries(proto ${LINKLIBS})
   add_dependencies(proto ${PROTO_DEPENDENCIES})

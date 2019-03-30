@@ -4,7 +4,7 @@
 
 #include "test.h"
 
-#include "../proto/trade.h"
+#include "../proto/library.h"
 
 using namespace CppCommon;
 using namespace CppSerialization;

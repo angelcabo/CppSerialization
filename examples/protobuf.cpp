@@ -6,7 +6,7 @@
     \copyright MIT License
 */
 
-#include "../proto/trade.h"
+#include "../proto/library.h"
 
 #include <iostream>
 
